@@ -1,0 +1,43 @@
+name: Trigger auto deployment for metime
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - 'dockerfile/**'
+    - '.github/workflows/metime-AutoDeployTrigger-863edb10-3f86-4805-81a7-9638a0264cce.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.METIME_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}dockerfile 
+          registryUrl: sira34.azurecr.io
+          registryUsername: ${{ secrets.METIME_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.METIME_REGISTRY_PASSWORD }}
+          containerAppName: metime
+          resourceGroup: DefaultResourceGroup-USW3
+          imageToBuild: sira34.azurecr.io/metime:${{ github.sha }}
+          
+            
+
+     
+
